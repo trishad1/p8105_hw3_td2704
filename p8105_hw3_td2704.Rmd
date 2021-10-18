@@ -1,0 +1,15 @@
+---
+title: "P8105 Homework 3 [td2704]"
+output: github_document
+---
+
+
+```{r, echo=FALSE, message=FALSE}
+
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(dplyr)
+
+```
+

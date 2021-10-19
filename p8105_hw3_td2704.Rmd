@@ -222,7 +222,7 @@ data_value_overyears_df
 
 Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
 
-```{r, fig.height=6, out.width = "90%"}
+```{r, fig.height=8, out.width = "90%"}
 
 data_value_overyears_df %>%
   ggplot(aes(x=year,y=mean_data_value)) +
@@ -251,7 +251,7 @@ brfss %>%
 
 ##  Problem 3
 
-Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc)
+Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. 
 
 
 ```{r}
@@ -260,13 +260,110 @@ accel_df =
   read_csv("data/accel_data.csv") %>%
   janitor::clean_names() %>%
   mutate(
-    weekend = (day == "Saturday"  | day == "Sunday")
+    weekend = (day == "Saturday"  | day == "Sunday"),
+    day_of_week = (case_when(
+      day == "Monday" ~ 1,
+      day == "Tuesday" ~ 2,
+      day == "Wednesday" ~ 3,
+      day == "Thursday" ~ 4,
+      day == "Friday" ~ 5,
+      day == "Saturday" ~ 6,
+      day == "Sunday" ~ 7
+    ))
   ) %>%
-  relocate(week, day_id, day, weekend)
+  relocate(week, day_id, day, weekend, day_of_week)
 
 accel_df
 
 ```
 
+Describe the resulting dataset (e.g. what variables exist, how many observations, etc)
+
+This dataset has `r nrow(accel_df)` rows, representing `r length(unique(pull(accel_df,day)))` 
+days of accelerometer data each for `r length(unique(pull(accel_df,week)))` weeks.
+It has variables for `r colnames(accel_df)[1:5]` and an additional 1440 variables
+for activity counts for each of the 60 minutes of each hour in a 24 hour day. The
+weekend variable is a logical variable - TRUE if the day is Saturday or Sunday,
+and FALSE otherwise. The day_of_week variable has numbers to order the days as 
+they order in a week.
+
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+```{r}
+
+accel_by_day_df = 
+  accel_df %>%
+  mutate(
+    total_activity = rowSums(across(activity_1:activity_1440))
+  ) %>%
+  select(week, day_id, day, weekend, day_of_week, total_activity) %>%
+  arrange(week, day_of_week)
+
+accel_by_day_df
+
+```
+We can see there are fluctuations in activity based on the day it is. Saturdays
+seem to have consistently low activity counts - let's further look at our newly 
+created table. 
+
+Let's see if there are any trends by day of week.
+
+```{r}
+
+accel_by_day_df %>%
+  group_by(day_of_week,day) %>%
+  summarize(
+    mean_activity = mean(total_activity)
+    )
+
+```
+
+As we can see, there seems to be the least activity on Saturdays and the most
+activity on Fridays.
+
+Let's see if there are any trends by weekend vs weekday.
+
+```{r}
+
+accel_by_day_df %>%
+  group_by(weekend) %>%
+  summarize(
+    mean_activity = mean(total_activity)
+    )
+
+```
+As we can see, there seems to be a trend of less activity on the weekends and
+more activity on weekdays. 
+
+
+Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
+```{r, out.width="90%"}
+
+accel_df %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to="activity_id",
+    names_prefix = "activity_",
+    values_to="activity_count"
+  ) %>% 
+  mutate(
+    activity_id = as.numeric(activity_id)
+  ) %>%
+  ggplot(aes(x=activity_id, y=activity_count)) +
+  geom_line(aes(group=day_id,color=factor(day_of_week))) +
+  labs(color='Day of the week') +
+  xlab("Minutes of the day (starting at 12am)") +
+  ggtitle("Activity count in a day grouped by day of the week (ordered Monday to Sunday)")
+
+
+```
+
+It looks like there is more activity in the early and late afternoons on the weekend, on 
+Sundays in particular, perhaps the user waking up late on weekends or going out more. 
+And overall, the weekdays seems to have high activity in mornings (likely when the user 
+wakes up) and in the evenings (before the user goes to bed). The activity count
+is lowest between roughly 1300 min to 400 min, which is roughly 10pm to 7am, and
+we can assume this is when the user usually sleeps.
 
 

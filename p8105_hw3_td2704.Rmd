@@ -88,7 +88,7 @@ aisle_info
 
 ```
 
-It seems to be that the top 5 aisles most ordered from are `r pull(head(aisle_info,5),aisle)`.
+It seems that the top 5 aisles most ordered from are `r pull(head(aisle_info,5),aisle)`.
 
 
 ### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
@@ -106,6 +106,9 @@ aisle_info %>%
 
 ```
 
+As we can see, only 4 aisles have more than 50000 orders: fresh vegetables, fresh
+fruits, packaged vegetables fruits, and yogurt. There are 39 aisles total that have 
+more than 10000 items ordered. 
 
 ### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
@@ -124,6 +127,12 @@ instacart %>%
 
 ```
 
+The top 3 items ordered in each of these categories are shown above. Among these,
+the number of items ordered from the packaged vegetables fruits aisle are much
+higher than the other two aisles, baking ingredients and dog food care. Items ordered
+in dog food care aisle are much lower in quantity ordered than the other aisles,
+but the 3 items showed are their most popular.
+
 ### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
 
 ```{r}
@@ -141,6 +150,10 @@ instacart %>%
 
 ```
 
+Overall, it seems that Coffee Ice Cream is ordered at a later hour on average than
+Pink Lady Apples are ordered, as the mean order hour of day on each day of the week
+is greater for Coffee Ice Cream every day except day 5, where the mean order hours 
+are roughly the same. 
 
 ## Problem 2
 
@@ -181,29 +194,39 @@ brfss
 
 ```{r}
 
-brfss %>%
+state_location_count_2002_7plus = 
+  brfss %>%
   filter(year == 2002) %>%
   group_by(state) %>%
   summarize(location_count = n_distinct(location)) %>%
-  filter(location_count >= 7) %>%
-  knitr::kable()
+  filter(location_count >= 7)
   
-
+state_location_count_2002_7plus  %>%
+  knitr::kable()
 ```
+
+States observed at 7 or more locations in 2002 are `r pull(state_location_count_2002_7plus, state)`.
+The state with the most observed locations in 2002 was PA at 10 locations.
 
 2010: states observed at 7 or more locations
 
-
 ```{r}
 
-brfss %>%
+state_location_count_2010_7plus = 
+  brfss %>%
   filter(year == 2010) %>%
   group_by(state) %>%
   summarize(location_count = n_distinct(location)) %>%
-  filter(location_count >= 7) %>%
+  filter(location_count >= 7) 
+
+state_location_count_2010_7plus %>%
   knitr::kable()
 
 ```
+
+States observed at 7 or more locations in 2010 are `r pull(state_location_count_2010_7plus, state)`.
+The state with the most observed locations in 2010 was FL at 41 locations.
+
 
 ### Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. 
 
@@ -230,23 +253,66 @@ data_value_overyears_df %>%
 
 ```
 
+Above, we have lines for each state representing mean data value over the years
+from 2002 to 2010. With all the states on here, it makes it slightly difficult
+to observe trends. If I were to make a comment, it seems like the overall
+mean_data_value does flow downward for many states, like from 2002 to 2004, as
+the range of values is smaller at 2004 than it is at 2002, and then the values
+slightly trend upwards after that. Other than 2 states at some years, the overall 
+mean_data_values over this period seem to range between 15 and 30.
+
 
 ### Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
+
+
+```{r}
+
+# brfss %>%
+#   filter(state == "NY") %>%
+#   filter(year == 2006 | year == 2010) %>%
+#   ggplot(aes(x=response,y=data_value,fill=year)) + 
+#   geom_point() + 
+#   facet_grid(. ~ year) +
+#   ggtitle("Distribution of data_value for various responses in NY in 2006 vs 2010") +
+#   xlab("Response") + ylab("data_value") + 
+#   theme(legend.position = "none")
+
+brfss %>%
+  filter(state == "NY") %>%
+  filter(year == 2006 | year == 2010) %>%
+  ggplot(aes(x=data_value)) + 
+  geom_histogram(aes(fill=response)) + 
+  facet_grid(. ~ year) +
+  ggtitle("Distribution of data_value for various responses in NY in 2006 vs 2010") +
+  xlab("data_value") + ylab("frequency")
+  
+
+```
+A density plot may be easier to parse than the histogram above when looking at
+distribution of data_value values.
 
 ```{r}
 
 brfss %>%
   filter(state == "NY") %>%
   filter(year == 2006 | year == 2010) %>%
-  ggplot(aes(x=response,y=data_value,fill=year)) + 
-  geom_bar(stat='identity') + 
-  facet_grid(. ~ year) +
+  ggplot(aes(x=data_value,fill=response)) + 
+  geom_density(alpha = .4) + 
+  facet_grid(rows = vars(year)) +
   ggtitle("Distribution of data_value for various responses in NY in 2006 vs 2010") +
-  xlab("Response") + ylab("data_value") + 
-  theme(legend.position = "none")
-  
+  xlab("data_value") + ylab("density")
+
 
 ```
+
+Here, we see different peaks for different responses. For the poor response,
+the data_values are concentrated between values 0 to 5. For the fair response,
+data_values concentrate around 10-15. Interestingly, for the excellent response,
+data_values concentrate around the middle values, although values tend to be higher
+in 2010 than in 2006. Very good values tend to be higher in 2010 than 2006, while
+both tend to have the highest values compared to other responses in the
+35 to 40 range. The good response seems to have no true peak of values in 2006, 
+but a peak around 30 in 2010. 
 
 
 ##  Problem 3
@@ -359,10 +425,10 @@ accel_df %>%
 
 ```
 
-It looks like there is more activity in the early and late afternoons on the weekend, on 
+It looks like there is more activity in the early and late afternoons on the weekend (days 6 and 7), on 
 Sundays in particular, perhaps the user waking up late on weekends or going out more. 
 And overall, the weekdays seems to have high activity in mornings (likely when the user 
-wakes up) and in the evenings (before the user goes to bed). The activity count
+wakes up) and in the evenings (around dinner and before the user goes to bed). The activity count
 is lowest between roughly 1300 min to 400 min, which is roughly 10pm to 7am, and
 we can assume this is when the user usually sleeps.
 

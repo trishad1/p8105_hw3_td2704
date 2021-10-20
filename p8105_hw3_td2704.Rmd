@@ -249,7 +249,8 @@ Make a “spaghetti” plot of this average value over time within a state (that
 
 data_value_overyears_df %>%
   ggplot(aes(x=year,y=mean_data_value)) +
-  geom_line(aes(group=state,color=state))
+  geom_line(aes(group=state,color=state)) +
+  ggtitle("Mean data value over the years across states for 'Excellent' response")
 
 ```
 
@@ -420,7 +421,7 @@ accel_df %>%
   geom_line(aes(group=day_id,color=factor(day_of_week))) +
   labs(color='Day of the week') +
   xlab("Minutes of the day (starting at 12am)") +
-  ggtitle("Activity count in a day grouped by day of the week (ordered Monday to Sunday)")
+  ggtitle("Activity count in a day grouped by day of the week (order: Monday to Sunday)")
 
 
 ```

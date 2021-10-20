@@ -255,12 +255,14 @@ data_value_overyears_df %>%
 ```
 
 Above, we have lines for each state representing mean data value over the years
-from 2002 to 2010. With all the states on here, it makes it slightly difficult
+from 2002 to 2010. With all the states on here, it makes it difficult
 to observe trends. If I were to make a comment, it seems like the overall
 mean_data_value does flow downward for many states, like from 2002 to 2004, as
 the range of values is smaller at 2004 than it is at 2002, and then the values
 slightly trend upwards after that. Other than 2 states at some years, the overall 
-mean_data_values over this period seem to range between 15 and 30.
+mean_data_values over this period seem to range between 15 and 30. But there is a
+lot of variability in trends among states over time, which makes it difficult
+to identify trends for all states or even specific states.
 
 
 ### Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
@@ -306,6 +308,7 @@ brfss %>%
 
 ```
 
+
 Here, we see different peaks for different responses. For the poor response,
 the data_values are concentrated between values 0 to 5. For the fair response,
 data_values concentrate around 10-15. Interestingly, for the excellent response,
@@ -315,6 +318,25 @@ both tend to have the highest values compared to other responses in the
 35 to 40 range. The good response seems to have no true peak of values in 2006, 
 but a peak around 30 in 2010. 
 
+```{r}
+
+brfss %>%
+  filter(state == "NY") %>%
+  filter(year == 2006 | year == 2010) %>%
+  ggplot(aes(x=data_value,fill=response)) + 
+  geom_boxplot() + 
+  facet_grid(rows = vars(year)) +
+  ggtitle("Distribution of data_value for various responses in NY in 2006 vs 2010") +
+  xlab("data_value") + ylab("density")
+
+```
+
+Another way to look at this distribution would be through boxplots as above.
+As we can see there are some differences in distribution for each of the
+responses. Particularly, the fair responses in 2010 seem to have more
+variability than in  2006. Very good scores seem to be higher in 2010 than in
+2006. And there is more variability in good response scores in 2006 than
+there is in 2010.
 
 ##  Problem 3
 
